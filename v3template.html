@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; worker-src blob:; connect-src 'self' blob:; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GsXFuscator V0.6 — Dashboard</title>
+  <link rel="icon" href="data:image/png;base64,__GSXFUSCATOR_FAVICON__">
+  <meta name="theme-color" content="#0c1118" id="clax-theme-color">
+  <script>
+  /* Apply the saved luminance before the first paint; no remote dependencies. */
+  (() => {
+    let mode = 'night', largeText = false;
+    try { const p = JSON.parse(localStorage.getItem('clax.workspace.preferences'));
+      if (p && p.mode === 'light') mode = 'light';
+      if (p && p.largeText === true) largeText = true;
+    } catch (_) { /* Private browsing or unavailable storage. */ }
+    const root = document.documentElement;
+    root.dataset.theme = 'graphite';
+    root.dataset.mode = mode;
+    root.dataset.textSize = largeText ? 'large' : 'standard';
+    const themeBar = document.getElementById('clax-theme-color');
+    if (themeBar) themeBar.content = mode === 'light' ? '#f7f9fc' : '#0c1118';
+    try {
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reducedData = matchMedia('(prefers-reduced-data: reduce)').matches;
+      const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 2;
+      const saveData = !!(navigator.connection && navigator.connection.saveData);
+      if (reducedMotion || reducedData || lowMemory || saveData) root.dataset.performance = 'lite';
+    } catch (_) { /* Unknown device capabilities use lightweight defaults. */ }
+  })();
+  </script>
+  <!-- Non-blocking optional Elegant display font; offline keeps Georgia. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
+  <style>/*__DASHBOARD_CSS__*/</style>
+  <style>
+    .discord-community-link {
+      display:flex; align-items:center; gap:12px; margin-top:12px; padding:10px 12px;
+      border-radius:16px; border:1px solid rgba(129, 140, 248, 0.35);
+      background: linear-gradient(135deg, rgba(88, 101, 242, 0.16), rgba(35, 39, 47, 0.1));
+      color: inherit; text-decoration:none;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+      overflow:hidden; position:relative;
+    }
+    .discord-community-link::after {
+      content:''; position:absolute; inset:0;
+      background: linear-gradient(120deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      opacity:0; transition: opacity 0.22s ease; pointer-events:none;
+    }
+    .discord-community-link:hover, .discord-community-link:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(129, 140, 248, 0.65);
+      box-shadow: 0 12px 28px rgba(56, 70, 210, 0.22), 0 0 0 1px rgba(129, 140, 248, 0.18) inset;
+      background: linear-gradient(135deg, rgba(88, 101, 242, 0.22), rgba(35, 39, 47, 0.16));
+      outline: none;
+    }
+    .discord-community-link:hover::after, .discord-community-link:focus-visible::after { opacity: 1; }
+    .discord-community-link:active { transform: translateY(0) scale(0.985); }
+    .discord-community-badge {
+      width:54px; height:54px; border-radius:50%; flex:none; object-fit:cover;
+      border:1px solid rgba(255,255,255,0.16); background:#5865f2;
+      box-shadow: 0 8px 18px rgba(88, 101, 242, 0.26);
+    }
+    .discord-community-copy { min-width:0; display:flex; flex-direction:column; gap:2px; }
+    .discord-community-title { font-size:14px; font-weight:700; line-height:1.15; color: var(--text); }
+    .discord-community-arrow { margin-left:auto; flex:none; color:#9ca3af; opacity:0.9; transition: transform 0.22s ease, color 0.22s ease; }
+    .discord-community-link:hover .discord-community-arrow, .discord-community-link:focus-visible .discord-community-arrow { transform: translateX(2px); color:#c7d2fe; }
+    @media (max-width:380px) {
+      .discord-community-badge { width:46px; height:46px; }
+      .discord-community-title { font-size:13px; }
+    }
+  </style>
+  <style>
+    .gsx-brand-image {display:block;flex:none;width:54px;height:54px;object-fit:contain;border-radius:12px;background:#050505;border:1px solid rgba(255,255,255,.16);box-shadow:0 3px 14px rgba(0,0,0,.2)}
+    @media(max-width:380px){.gsx-brand-image{width:46px;height:46px}}
+  </style>
+  <style>
+    /* Display headings use Elegant when available; body text uses platform UI fonts. */
+    
+    * { -webkit-tap-highlight-color: transparent; }
+    
+    body { 
+      background-color: #050505; 
+      color: #ffffff; 
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      background-image: 
+        linear-gradient(rgba(255, 0, 51, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 0, 51, 0.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      overscroll-behavior: none;
+    }
+    
+    .font-candy { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .font-mono { font-family: 'Fira Code', monospace; }
+
+    /* Tab Transitions */
+    .tab-pane {
+      display: none;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.35s ease-out, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .tab-pane.active { display: block; }
+    .tab-pane.visible { opacity: 1; transform: translateY(0); }
+
+    /* Buttons */
+    button { 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+      position: relative;
+      overflow: hidden;
+    }
+    button:active:not(:disabled) { transform: scale(0.97); }
+    
+    .btn-primary { 
+      background: #ff0033; 
+      color: #fff; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 14px rgba(255, 0, 51, 0.3); 
+    }
+    .btn-primary:hover:not(:disabled) { 
+      background: #ff1a4a; 
+      box-shadow: 0 6px 20px rgba(255, 0, 51, 0.45); 
+    }
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    
+    .btn-secondary {
+      background: #1a1a1e;
+      border: 1.5px solid #27272a;
+      color: #fff;
+      border-radius: 12px;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      border-color: #52525b;
+      background: #27272a;
+    }
+
+    /* Cards */
+    .card { 
+      border: 1px solid #27272a; 
+      border-radius: 16px; 
+      background: #0f0f11; 
+      transition: border-color 0.25s ease, box-shadow 0.25s ease; 
+      position: relative;
+    }
+    .card::before, .card::after { 
+      content: ''; position: absolute; width: 10px; height: 10px; 
+      border: 2px solid #ff0033; opacity: 0.25; transition: opacity 0.25s; pointer-events: none; 
+    }
+    .card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; border-top-left-radius: 16px; }
+    .card::after { bottom: -1px; right: -1px; border-left: none; border-top: none; border-bottom-right-radius: 16px; }
+    .card:hover::before, .card:hover::after { opacity: 0.7; }
+    .card:hover { border-color: rgba(255, 0, 51, 0.25); }
+    
+    /* Navigation */
+    .nav-item { 
+      display: flex; align-items: center; gap: 12px; padding: 13px 16px; 
+      border-radius: 12px; font-size: 15px; font-weight: 700; color: #a1a1aa; cursor: pointer; 
+      border-left: 3px solid transparent;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .nav-item:hover { background-color: #1a1a1e; color: #ffffff; }
+    .nav-item.active { background-color: rgba(255, 0, 51, 0.1); color: #ff0033; border-left-color: #ff0033; }
+
+    /* Progress Ring */
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.1s linear; 
+      transform: rotate(-90deg); 
+      transform-origin: 50% 50%;
+      stroke: #ff0033; 
+      stroke-linecap: round;
+    }
+    
+    /* File Zone */
+    .file-zone { 
+      border: 2px dashed #3f3f46; 
+      transition: all 0.25s ease; 
+      background: #050505; 
+      border-radius: 14px; 
+    }
+    .file-zone:hover, .file-zone.dragover { 
+      border-color: #ff0033; 
+      background: rgba(255, 0, 51, 0.04); 
+      box-shadow: inset 0 0 24px rgba(255, 0, 51, 0.06);
+    }
+    
+    /* Toggle Switch */
+    .tech-switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+    .tech-switch input { opacity: 0; width: 0; height: 0; }
+    .tech-slider { 
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+      background-color: #1a1a1e; border: 2px solid #3f3f46; 
+      transition: background-color 0.2s, border-color 0.2s; 
+      border-radius: 26px; 
+    }
+    .tech-slider:before { 
+      position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; 
+      background-color: #52525b; border-radius: 50%; 
+      transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55), background-color 0.2s, box-shadow 0.2s;
+    }
+    .tech-switch input:checked + .tech-slider { border-color: #ff0033; background: rgba(255,0,51,0.12); }
+    .tech-switch input:checked + .tech-slider:before { 
+      transform: translateX(20px); 
+      background-color: #ff0033; 
+      box-shadow: 0 0 10px rgba(255,0,51,0.7); 
+    }
+    .toggle-label { font-size: 15px; font-weight: 700; color: #a1a1aa; transition: color 0.2s; }
+    .tech-switch input:checked ~ .toggle-label { color: #ffffff; }
+
+    /* Output Area */
+    .output-area {
+      background: #000000; border: 1px solid #27272a; border-radius: 12px; padding: 16px;
+      font-family: 'Fira Code', monospace; font-size: 13px; color: #d4d4d8;
+      height: 240px; overflow-y: auto; line-height: 1.65; resize: vertical;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #ff0033; }
+
+    
+    .action-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 10px; border: 1px solid #27272a;
+      color: #a1a1aa; cursor: pointer; background: #1a1a1e; flex-shrink: 0;
+    }
+    .action-btn:hover { color: #fff; border-color: #ff0033; background: rgba(255,0,51,0.1); }
+    .action-btn:active { transform: scale(0.94); }
+    .action-btn.danger:hover { color: #ff0033; border-color: #ff0033; background: rgba(255,0,51,0.15); }
+
+    /* Modal */
+    #modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(10px);
+      z-index: 100; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+      padding: 20px;
+    }
+    #modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: #0f0f11; border: 2px solid #ff0033; border-radius: 18px;
+      padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+      transform: scale(0.94) translateY(12px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #modal-overlay.active .modal-box { transform: scale(1) translateY(0); }
+
+    /* Toast */
+    #toast {
+      visibility: hidden; min-width: 240px; max-width: 90vw; background-color: #0f0f11; color: #fff;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      text-align: center; border-radius: 14px; padding: 14px 22px; position: fixed;
+      z-index: 1000; bottom: 28px; left: 50%; transform: translate(-50%, 24px);
+      font-size: 15px; font-weight: 700; border: 2px solid #ff0033; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #toast.show { visibility: visible; opacity: 1; transform: translate(-50%, 0); }
+
+    /* Typewriter Cursor */
+    .type-cursor {
+      display: inline-block; width: 2px; height: 1em; background-color: #ff0033;
+      animation: blink 1s step-end infinite; vertical-align: bottom; margin-left: 3px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Mobile Sidebar */
+    .sidebar {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 30;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        z-index: 40;
+        transform: translateX(-100%);
+      }
+      .sidebar.open { transform: translateX(0); }
+      
+      .main-content { margin-left: 0 !important; }
+    }
+
+    /* Rules content */
+    .rule-item {
+      display: flex; gap: 14px; padding: 16px; border-radius: 14px;
+      background: #0f0f11; border: 1px solid #27272a; margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .rule-item:hover { border-color: rgba(255,0,51,0.3); }
+    .rule-num {
+      width: 32px; height: 32px; border-radius: 10px; background: rgba(255,0,51,0.12);
+      color: #ff0033; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; flex-shrink: 0;
+    }
+  </style>
+  <style>
+    /* Documentation lives in the local bundle, including the reading layout. */
+    #tab-docs { color: #f5f5f6; font-size: 15px; line-height: 1.65; }
+    button.nav-item { width: 100%; text-align: left; }
+    #tab-docs * { box-sizing: border-box; }
+    .doc-heading { border-left: 3px solid #ff3159; padding: 3px 0 4px 18px; margin: 6px 0 28px; }
+    .doc-heading small { color: #ff8097; font: 600 12px/1.4 'Fira Code', monospace; }
+    .doc-heading h2 { font: 600 clamp(1.8rem,4vw,2.55rem)/1.15 'Cormorant Garamond',Georgia,serif; margin: .25em 0; }
+    .doc-heading p, .doc-section p, .doc-section li { color: #c8c8d0; }
+    .doc-heading p { margin: 0; }
+    .doc-layout { display: grid; grid-template-columns: 150px minmax(0,1fr); gap: clamp(18px,3vw,36px); align-items: start; }
+    .doc-index { position: sticky; top: 12px; display: grid; gap: 2px; border-top: 1px solid #37373f; padding-top: 10px; }
+    .doc-index strong { font-size: 12px; color: #a9a9b2; padding: 5px 8px; }
+    .doc-index a { color: #d7d7de; padding: 6px 8px; border-radius: 6px; font-weight: 700; text-decoration: none; }
+    .doc-index a:hover { background: #242026; color: #ff9eb0; }
+    .doc-section { min-width: 0; background: #101013; border: 1px solid #2c2c33; border-radius: 14px; padding: clamp(17px,3vw,27px); margin: 0 0 16px; scroll-margin-top: 12px; }
+    .doc-section h3 { font: 600 1.5rem/1.25 'Cormorant Garamond',Georgia,serif; margin: 0 0 12px; }
+    .doc-section h4 { font-size: 1rem; font-weight: 700; margin: 20px 0 5px; }
+    .doc-section p { margin: 8px 0; }
+    .doc-section p:last-child { margin-bottom: 0; }
+    .doc-section strong { color: #f1f1f4; }
+    .doc-section ol { list-style: decimal; padding-left: 1.5em; margin: .6em 0; }
+    .doc-section li { padding-left: 3px; margin: .3em 0; }
+    .doc-section li::marker { color: #ff8199; font-weight: 700; }
+    .doc-section code { color: #ffc5d1; font: .87em/1.6 'Fira Code',monospace; overflow-wrap: anywhere; }
+    .doc-snippet { background: #09090c; border: 1px solid #34343c; border-radius: 9px; overflow: hidden; margin: 14px 0; }
+    .doc-snippet figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #1b1b20; color: #c5c5ce; padding: 6px 10px 6px 14px; font: 600 12px/1.5 'Fira Code',monospace; }
+    .doc-snippet button { color: #eeeef2; background: #29292f; border: 1px solid #42424b; border-radius: 6px; font: 600 12px/1.5 'Cormorant Garamond',Georgia,serif; padding: 4px 9px; cursor: pointer; }
+    .doc-snippet button:hover { border-color: #ff8199; }
+    .doc-snippet pre { margin: 0; padding: 12px 14px; overflow-x: auto; tab-size: 2; text-align: left; white-space: pre; }
+    .doc-snippet pre code { overflow-wrap: normal; color: #eeeef2; font: 13px/1.65 'Fira Code',monospace; }
+    #tab-docs :is(a,button,pre):focus-visible, .nav-item[data-target="docs"]:focus-visible { outline: 2px solid #ff8199; outline-offset: -2px; }
+    .doc-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0; table-layout: fixed; }
+    .doc-table th, .doc-table td { vertical-align: top; text-align: left; padding: 8px 8px 8px 0; border-bottom: 1px solid #303036; overflow-wrap: anywhere; }
+    .doc-table th { color: #dbdbe2; font-weight: 700; }
+    .doc-table td { color: #c8c8d0; }
+    .doc-table :is(th,td):first-child { width: 34%; }
+    @media (max-width: 940px) {
+      .doc-layout { grid-template-columns: minmax(0,1fr); gap: 15px; }
+      .doc-index { position: static; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; border-bottom: 1px solid #37373f; padding: 6px 0; }
+      .doc-index a { font-size: 14px; padding: 5px; }
+    }
+
+
+    /* Offline developer library — accessible in Graphite Light/Night. */
+    .dev-docs { scroll-margin-top:24px; }
+    .dev-docs p,.dev-docs li { line-height:1.68; }
+    .dev-doc-search-label { display:block; color:var(--ink); font:700 15px/1.45 var(--ui-font); margin:15px 0 7px; }
+    #dev-doc-search { width:100%; max-width:100%; min-height:46px; padding:10px 14px; border-radius:11px; border:1px solid var(--line); background:var(--paper); color:var(--ink); font:500 16px var(--ui-font); }
+    #dev-doc-search:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+    #dev-doc-status { font-size:13px; color:var(--subtle); }
+    .dev-doc-chapter { margin:12px 0; border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:clip; }
+    .dev-doc-chapter > summary { display:flex; gap:11px; align-items:center; padding:14px 16px; min-height:52px; cursor:pointer; color:var(--ink); list-style:none; font:750 15px/1.45 var(--ui-font); }
+    .dev-doc-chapter > summary::-webkit-details-marker { display:none; }
+    .dev-doc-chapter > summary:hover { background:var(--accent-fill); }
+    .dev-doc-chapter > summary:focus-visible { outline:2px solid var(--accent); outline-offset:-3px; }
+    .dev-doc-count { min-width:2.1em; font:750 12px var(--mono-font); color:var(--link); }
+    .dev-doc-chevron { margin-left:auto; transition:transform .2s ease; color:var(--subtle); }
+    .dev-doc-chapter[open] .dev-doc-chevron { transform:rotate(180deg); }
+    .dev-doc-body { padding:16px clamp(12px,2.5vw,24px) 22px; border-top:1px solid var(--line); font-size:16px; color:var(--ink); overflow-wrap:anywhere; }
+    .dev-doc-body h1 { font:700 clamp(1.4rem,3vw,2rem)/1.25 var(--display-font); margin:2px 0 17px; }
+    .dev-doc-body :is(h2,h3,h4,h5) { color:var(--ink); font:750 1.13rem/1.4 var(--ui-font); margin:24px 0 10px; }
+    .dev-doc-body h2 { font-size:1.27rem; border-bottom:1px solid var(--line); padding-bottom:8px; }
+    .dev-doc-body :is(p,li) { font:400 1rem/1.72 var(--ui-font); color:var(--subtle); margin:8px 0; }
+    .dev-doc-body :is(ul,ol) { margin:12px 0 15px; padding-left:22px; }
+    .dev-doc-body ul { list-style:disc; }
+    .dev-doc-body ol { list-style:decimal; }
+    .dev-doc-body li::marker { color:var(--link); }
+    .dev-doc-body :is(strong,th) { color:var(--ink); }
+    .dev-doc-body a { color:var(--link); text-underline-offset:3px; }
+    .dev-doc-body :is(pre,code) { font-family:var(--mono-font); }
+    .dev-doc-body code { font-size:.91em; overflow-wrap:anywhere; }
+    .dev-doc-body pre { overflow:auto; max-width:100%; padding:14px; margin:12px 0; border-radius:10px; border:1px solid var(--line); background:var(--paper); }
+    .dev-doc-body pre code { white-space:pre; overflow-wrap:normal; font-size:max(.85rem, 14px); color:var(--ink); }
+    .dev-doc-body blockquote { border-left:3px solid var(--accent); padding:5px 14px; margin:14px 0; background:var(--accent-fill); }
+    .dev-doc-body .dev-doc-table { display:block; overflow-x:auto; width:100%; margin:14px 0; }
+    .dev-doc-body .dev-doc-table th,.dev-doc-body .dev-doc-table td { min-width:100px; }
+    .dev-doc-body hr { border:0; border-top:1px solid var(--line); margin:24px 0; }
+    @media (prefers-reduced-motion: reduce) { .dev-doc-chevron { transition:none; } }
+  </style>
+  <style>/*__SETTINGS_CSS__*/</style>
+</head>
+<body class="h-screen flex overflow-hidden">
+  
+  <!-- Toast -->
+  <div id="toast">
+    <svg id="toast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="toast-message">Message</span>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal-overlay">
+    <div class="modal-box">
+      <h3 id="modal-title" class="font-candy text-2xl text-red mb-2">Confirm</h3>
+      <p id="modal-message" class="text-fg text-[15px] font-medium mb-5 leading-relaxed">Are you sure?</p>
+      <input type="text" id="modal-input" class="w-full bg-bg border-2 border-border rounded-xl p-3.5 text-fg font-bold focus:outline-none focus:border-red mb-5 hidden transition-colors text-[15px]">
+      <div class="flex justify-end gap-3">
+        <button onclick="closeModal()" class="btn-secondary px-5 py-2.5 text-[14px] font-bold">Cancel</button>
+        <button id="modal-confirm-btn" class="btn-primary px-5 py-2.5 text-[14px] font-bold">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Sidebar Overlay -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-64 bg-surface border-r border-border flex flex-col px-3 py-5 z-40 shrink-0">
+    <div class="flex items-center justify-between px-2 mb-8">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('overview'); closeSidebar()">
+        <img class="gsx-brand-image" src="data:image/webp;base64,__GSXFUSCATOR_LOGO__" width="54" height="54" alt="GsXFuscator chrome GSX logo" decoding="async" fetchpriority="high">
+        <span class="font-candy text-xl font-semibold tracking-wide text-fg">GsXFuscator</span>
+      </div>
+      <button onclick="closeSidebar()" class="md:hidden p-2 rounded-lg text-muted hover:text-white hover:bg-surface-light">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <nav id="workspace-nav" aria-label="Workspace" class="space-y-1.5 flex-1">
+      <a class="nav-item active" data-target="overview" onclick="switchTab('overview'); closeSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+        Overview
+      </a>
+      <a class="nav-item" data-target="obfuscate" onclick="switchTab('obfuscate'); closeSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19h8"/><path d="m4 17 6-6-6-6"/></svg>
+        Obfuscator
+      </a>
+
+      <button type="button" class="nav-item" data-target="docs" onclick="switchTab('docs'); closeSidebar()">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5C8.5 3.3 5 3.6 2 4.5v14c3-.9 6.5-1.2 10 1 3.5-2.2 7-1.9 10-1v-14c-3-.9-6.5-1.2-10 1z"/><path d="M12 5.5v14"/></svg>
+        Documentation
+      </button>
+      <a class="nav-item" data-target="rules" onclick="switchTab('rules'); closeSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        Rules
+      </a>
+      <button type="button" class="nav-item" data-target="settings" onclick="switchTab('settings'); closeSidebar()">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <div class="px-3 pt-4 border-t border-border mt-4">
+      <p class="text-[12px] text-muted font-medium text-center">GsXFuscator V0.6</p>
+            <a href="https://discord.gg/cHawU8Wmzj" target="_blank" rel="noopener noreferrer" aria-label="GsXFuscator Discord community (opens in new tab)" class="discord-community-link">
+        <img src="data:image/jpeg;base64,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" alt="Discord Community" class="discord-community-badge" decoding="async">
+        <span class="discord-community-copy">
+          <span class="discord-community-title">Discord Community</span>
+        </span>
+        <svg class="discord-community-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
+    <!-- Header -->
+    <header class="h-16 md:h-18 border-b border-border flex items-center justify-between px-4 md:px-8 bg-bg/90 backdrop-blur-md shrink-0 z-10">
+      <div class="flex items-center gap-3">
+        <button onclick="openSidebar()" class="md:hidden p-2 -ml-1 rounded-lg text-muted hover:text-white hover:bg-surface-light">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+        </button>
+        <h2 id="page-title" class="font-candy text-2xl md:text-3xl font-semibold text-fg transition-opacity duration-200">Overview</h2>
+      </div>
+      <button id="profile-link" class="profile-link" aria-label="Edit your local profile" onclick="switchTab('settings'); closeSidebar()">
+        <span class="profile-identity"><strong id="profile-name">GsX User</strong><small id="profile-handle">@gsxuser</small></span>
+        <span class="profile-avatar" data-avatar aria-hidden="true">CU</span>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 relative">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- OVERVIEW TAB -->
+        <div id="tab-overview" class="tab-pane active visible">
+          <div class="card p-6 md:p-10 bg-gradient-to-br from-surface to-[#140003] overflow-hidden relative">
+            <!-- subtle glow -->
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-red/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative">
+              <h1 class="font-candy text-3xl md:text-5xl font-semibold text-fg leading-tight mb-1">
+                <span id="type-target-1"></span>
+              </h1>
+              <div class="flex items-center gap-2.5 mt-1 mb-5">
+                <svg class="w-6 h-6 md:w-7 md:h-7 text-red shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span id="overview-profile-name" class="font-candy text-3xl md:text-5xl font-semibold text-red leading-none">GsX User</span>
+              </div>
+            </div>
+
+            <p class="text-[15px] md:text-[17px] text-muted font-medium leading-relaxed mb-7 max-w-lg opacity-0 animate-[fadeIn_0.5s_ease-out_1.4s_forwards] relative">
+              Obfuscate Lua scripts with layered VM transformations and runtime integrity checks. Drop a file into the Obfuscator, let the engine run, and download the protected build.
+            </p>
+            <button onclick="switchTab('obfuscate')" class="btn-primary text-[15px] md:text-[16px] font-bold px-7 py-3.5 flex items-center gap-2 relative">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19h8"/><path d="m4 17 6-6-6-6"/></svg>
+              Start Obfuscating
+            </button>
+          </div>
+
+          <!-- Feature Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-5 md:mt-6">
+            <div class="card p-5 hover:border-red/20 transition-all">
+              <div class="w-10 h-10 rounded-xl bg-red/10 flex items-center justify-center text-red mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h3 class="font-bold text-[15px] md:text-[16px] mb-1">Anti-Tamper</h3>
+              <p class="text-[13px] text-muted leading-relaxed">Detects and blocks unauthorized modifications to your scripts.</p>
+            </div>
+            <div class="card p-5 hover:border-red/20 transition-all">
+              <div class="w-10 h-10 rounded-xl bg-red/10 flex items-center justify-center text-red mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <h3 class="font-bold text-[15px] md:text-[16px] mb-1">Intense VM</h3>
+              <p class="text-[13px] text-muted leading-relaxed">VM virtualization and randomized instruction mapping increase analysis effort.</p>
+            </div>
+            <div class="card p-5 hover:border-red/20 transition-all">
+              <div class="w-10 h-10 rounded-xl bg-red/10 flex items-center justify-center text-red mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <h3 class="font-bold text-[15px] md:text-[16px] mb-1">Local Exports</h3>
+              <p class="text-[13px] text-muted leading-relaxed">Save your generated Lua directly; source and output are not stored in browser history.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- OBFUSCATE TAB -->
+        <div id="tab-obfuscate" class="tab-pane">
+          <div class="card p-5 md:p-8">
+            <div class="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
+              
+              <div>
+                <h2 class="font-candy text-xl md:text-2xl font-semibold text-fg mb-2 min-h-[28px]">
+                  <span id="type-target-2"></span>
+                </h2>
+                <p class="text-[14px] md:text-[15px] text-muted font-medium mb-5">Select a <span class="font-mono text-red font-bold">.lua</span>, <span class="font-mono text-red font-bold">.luau</span> or <span class="font-mono text-red font-bold">.txt</span> file containing Lua code (max 10 MiB). Drop it here or choose a file to compile in your browser.</p>
+                
+                <input type="file" id="fileInput" accept=".lua,.luau,.txt" class="hidden">
+                
+                <div id="dropZone" class="file-zone p-6 md:p-8 flex items-center justify-center gap-4 cursor-pointer mb-6 group" onclick="document.getElementById('fileInput').click()">
+                  <svg class="text-muted group-hover:text-red transition-colors shrink-0" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <div class="text-left min-w-0">
+                    <p class="text-[15px] md:text-[16px] font-bold text-fg group-hover:text-red transition-colors truncate" id="fileName">Click to select file</p>
+                    <p class="text-[13px] text-muted font-mono mt-0.5" id="fileSize">or drag and drop a .lua, .luau or .txt file</p>
+                  </div>
+                </div>
+                <p class="text-[13px] text-muted mb-5" id="protection-policy-note">Automatic Lua protection: Strong compact VM, Anti-Tamper, Anti-Debug and integrity checks. Luau uses Direct VM when recognized; standard Lua uses Sealed.</p>
+
+
+                <button id="runBtn" onclick="startObfuscation()" disabled class="btn-primary text-[15px] md:text-[16px] font-bold px-6 py-3.5 w-full flex items-center justify-center gap-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Run
+                </button>
+              </div>
+
+              <div class="flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-border pt-8 md:pt-0 md:pl-8">
+                <div class="relative w-40 h-40 md:w-48 md:h-48 flex items-center justify-center">
+                  <svg class="w-full h-full absolute inset-0" viewBox="0 0 100 100">
+                    <circle class="stroke-surface-light" stroke-width="4" fill="transparent" r="44" cx="50" cy="50"/>
+                    <circle class="progress-ring__circle" stroke-width="4" fill="transparent" r="44" cx="50" cy="50" stroke-dasharray="276.46" stroke-dashoffset="276.46" id="build-ring"/>
+                  </svg>
+                  <div class="absolute flex flex-col items-center justify-center" id="pulse-container">
+                    <span class="text-3xl md:text-4xl font-mono text-fg font-bold tracking-tighter" id="build-percent">0%</span>
+                    <span class="text-[11px] text-muted tracking-widest mt-1 font-bold">STATUS</span>
+                  </div>
+                </div>
+                <p class="text-[14px] md:text-[15px] font-bold text-muted mt-4 h-5 text-center transition-all duration-300" id="build-stage">Idle</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="outputSection" class="mt-5 hidden opacity-0 transition-opacity duration-300">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 px-1">
+              <h3 class="font-candy text-xl md:text-2xl font-semibold text-fg">Obfuscated Output</h3>
+              <div class="flex gap-2">
+                <button onclick="copyToClipboard('outputCode', this)" class="btn-secondary text-[14px] font-bold px-4 py-2.5 flex-1 sm:flex-none">Copy</button>
+                <button onclick="downloadCurrentOutput()" class="btn-primary text-[14px] font-bold px-4 py-2.5 flex-1 sm:flex-none">Download</button>
+              </div>
+            </div>
+            <div class="output-area" id="outputCode"></div>
+          </div>
+        </div>
+
+
+        <div id="tab-docs" class="tab-pane" lang="en" aria-labelledby="docs-title">
+          <header class="doc-heading">
+            <small>GsXFuscator V0.6</small>
+            <h2 id="docs-title">GsXFuscator Developer Documentation</h2>
+            <p>Full API reference, architecture, and end-to-end tutorials to build and test your own Lua obfuscator. Available offline.</p>
+          </header>
+          <div class="doc-layout">
+            <nav class="doc-index" aria-label="Documentation sections">
+              <strong>Contents</strong>
+              <a href="#docs-start">Quick start</a>
+              <a href="#docs-cli">Command line</a>
+              <a href="#docs-api">Lua API</a>
+              <a href="#docs-library">Full developer library</a>
+              <a href="#dev-build-your-own-obfuscator">Build your own obfuscator</a>
+              <a href="#dev-vm-isa-and-bytecode">VM &amp; bytecode</a>
+              <a href="#dev-api">Complete API</a>
+              <a href="#dev-testing-and-benchmarking">Test methodology</a>
+              <a href="#docs-appearance">Reading &amp; display</a>
+              <a href="#docs-performance">Performance</a>
+              <a href="#docs-security">Security limits</a>
+              <a href="#docs-troubleshooting">Troubleshooting</a>
+            </nav>
+            <div>
+              <section class="doc-section" id="docs-start" aria-labelledby="docs-start-title">
+                <h3 id="docs-start-title">Quick start</h3>
+                <p>Save this one-line example as <code>example.lua</code> to try your first build.</p>
+                <figure class="doc-snippet">
+                  <figcaption>example.lua <button type="button" aria-label="Copy Lua example" onclick="copyToClipboard('docs-code-source', this)">Copy</button></figcaption>
+                  <pre tabindex="0" aria-label="Lua example"><code id="docs-code-source">print(6 * 7)</code></pre>
+                </figure>
+                <ol>
+                  <li>Open <strong>Obfuscator</strong> and select or drop your file. The panel accepts <code>.lua</code>, <code>.luau</code>, and <code>.txt</code> files containing Lua source code. Drag and drop works for all three extensions.</li>
+                  <li>Press <strong>Run</strong> to compile the file. The downloaded example prints <code>42</code> when you run it in Lua.</li>
+                  <li>Save the generated Lua file with <strong>Download</strong>. Keep your own backups: GsXFuscator does not store build history.</li>
+                </ol>
+              </section>
+              <section class="doc-section" id="docs-cli" aria-labelledby="docs-cli-title">
+                <h3 id="docs-cli-title">Command line</h3>
+                <p>Open a terminal with the <code>lua</code> interpreter available. Place <code>example.lua</code> beside the project’s <code>v2</code> directory and run this command from the project root.</p>
+                <figure class="doc-snippet">
+                  <figcaption>Terminal <button type="button" aria-label="Copy build command" onclick="copyToClipboard('docs-code-cli', this)">Copy</button></figcaption>
+                  <pre tabindex="0" aria-label="CLI command"><code id="docs-code-cli">lua v2/obfuscator.lua example.lua example.obf.lua --preset strong --strict-verify --stats</code></pre>
+                </figure>
+                <p>This command compares the source with the final packaged output. A successful check prints <code>verified: output matches source</code> and writes <code>example.obf.lua</code>.</p>
+                <p><strong>Threat-model tradeoff:</strong> The browser automatically enables strong protection with sealed transport; the CLI also defaults to sealed output. Luau inputs are automatically emitted as Direct VM so scripts do not require <code>loadstring</code>. CLI <code>--no-seal</code> selects the same delivery. Direct VM exposes VM source text to static analysis. Neither mode keeps executable client-side code secret from a host that controls its runtime.</p>
+                <table class="doc-table" aria-label="CLI options">
+                  <thead><tr><th scope="col">Option</th><th scope="col">Behavior</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>--preset</code></td><td><code>strong</code> is the default. Other explicit CLI presets are <code>normal</code> and <code>fast</code>.</td></tr>
+                    <tr><td><code>--seed N</code></td><td>Use an integer from 0 to 4294967295 to reproduce a build with the same version and options.</td></tr>
+                    <tr><td><code>--no-seal</code> / <code>--direct-vm</code></td><td>Emit the protected VM directly, without a runtime <code>load</code>/<code>loadstring</code> call. The outer VM runtime becomes visible to static analysis.</td></tr>
+                    <tr><td><code>--seal</code></td><td>Use the additional encoded wrapper (default). A host that hooks <code>load</code> can capture the recovered VM text at runtime.</td></tr>
+                    <tr><td><code>--version</code></td><td>Prints V0.6 and VM/Seal format identifiers.</td></tr>
+                    <tr><td><code>--run</code></td><td>Compares source and output behavior once.</td></tr>
+                    <tr><td><code>--vm-size compact</code></td><td>Reduce redundant VM handlers/aliases for smaller output; compact is the default.</td></tr>
+                    <tr><td><code>--auto-fix</code></td><td>Tries the next preset after an output mismatch. An integrity failure stops the build immediately.</td></tr>
+                    <tr><td><code>--max-steps N</code><br><code>--seconds N</code></td><td>Sets instruction and CPU time budgets for verification.</td></tr>
+                    <tr><td><code>--stats</code></td><td>Prints output size and VM statistics.</td></tr>
+                    <tr><td><code>-o FILE</code></td><td>Sets the output path. Defaults to <code>example.obf.lua</code> for <code>example.lua</code>.</td></tr>
+                  </tbody>
+                </table>
+                <p><strong>Exit codes</strong> &nbsp; <code>0</code> completed · <code>1</code> usage or file error · <code>2</code> build failed · <code>3</code> verification failed. The CLI also reports a warning when verification is inconclusive.</p>
+              </section>
+              <section class="doc-section" id="docs-api" aria-labelledby="docs-api-title">
+                <h3 id="docs-api-title">Lua API reference</h3>
+                <p>Call the bundled modules with <code>require</code> from your Lua process. Save this example as <code>build.lua</code> in the project root and run <code>lua build.lua</code>. It writes <code>api-output.lua</code>.</p>
+                <figure class="doc-snippet">
+                  <figcaption>build.lua <button type="button" aria-label="Copy Lua API example" onclick="copyToClipboard('docs-code-api', this)">Copy</button></figcaption>
+                  <pre tabindex="0" aria-label="Lua API example"><code id="docs-code-api">package.path = "./v2/?.lua;" .. package.path
+local Obfuscate = require("src.obfuscate")
+local Seal = require("src.seal")
+
+local source = "print(6 * 7)"
+local result = Obfuscate.run(source, {
+  filename = "example.lua", preset = "normal", seed = 42
+})
+if not result.ok then
+  for _, e in ipairs(result.errors) do
+    io.stderr:write(string.format("%d:%d %s\n", e.line, e.col, e.msg))
+  end
+  os.exit(1)
+end
+
+local artifact = assert(Seal.wrap(result.code, result.seed))
+local file = assert(io.open("api-output.lua", "wb"))
+assert(file:write(artifact))
+assert(file:close())</code></pre>
+                </figure>
+                <h4><code>Obfuscate.run(source, opts)</code></h4>
+                <p><code>source</code> is Lua source text. The optional <code>opts</code> table accepts <code>preset</code>, <code>seed</code>, and a diagnostic <code>filename</code>. An unknown preset raises a Lua error.</p>
+                <table class="doc-table" aria-label="Obfuscate.run return fields">
+                  <thead><tr><th scope="col">Return field</th><th scope="col">Meaning</th></tr></thead>
+                  <tbody>
+                    <tr><td><code>ok</code>, <code>stage</code></td><td><code>true</code> and <code>"done"</code> on success. Failure stages include <code>input</code>, <code>parse</code>, <code>scope</code>, and <code>compile</code>.</td></tr>
+                    <tr><td><code>code</code>, <code>stats</code></td><td>Generated VM code and build statistics on success. Both are <code>nil</code> on a build failure.</td></tr>
+                    <tr><td><code>errors</code></td><td>Diagnostics contain <code>line</code>, <code>col</code>, and <code>msg</code>. Empty on success.</td></tr>
+                    <tr><td><code>seed</code>, <code>preset</code></td><td>The seed and preset used for this build.</td></tr>
+                  </tbody>
+                </table>
+                <h4><code>Seal.wrap(code, seed)</code></h4>
+                <p>Packages the protected VM program as a two-stage transport: SEAL3 diversified fragments over the existing SEAL2 LZSS and checksummed payload. Sealed output includes the GsXFuscator V0.6 protected-by signature and anime ASCII comment header; its executable payload remains token-minified on one line and omits the legacy QT signature. Each fragment has its own derived stream and runtime integrity check. The loader remains recoverable under a hostile Lua host; this is not cryptographic authentication or guaranteed dump prevention. CLI option <code>--no-seal</code> emits direct VM bytecode instead.</p>
+              </section>
+          <!--__FULL_DEVELOPER_DOCS__-->
+              <section class="doc-section" id="docs-appearance" aria-labelledby="docs-appearance-title">
+                <h3 id="docs-appearance-title">Reading, Graphite Light &amp; Night</h3>
+                <p>The dashboard uses one graphite-gray palette; theme colors and font menus are removed. Go to <strong>Settings → Appearance</strong> to choose <strong>Light</strong> or <strong>Night</strong>, or enable <strong>Large reading text</strong>. These settings persist in this browser when storage is allowed.</p>
+                <p>Elegant is retained for display headings. Instructions, buttons and longer passages use clear system UI fonts, with generous spacing, visible keyboard focus and no dependency on downloading a webfont. Browser text zoom and accessibility settings are supported.</p>
+                <p>Animations are subtle. If your device requests reduced motion/data or reports low memory, decorative motion and effects are reduced automatically; <strong>all essential operations remain available</strong>. Reduced-motion is also honored through operating-system settings.</p>
+              </section>
+              <section class="doc-section" id="docs-performance" aria-labelledby="docs-performance-title">
+                <h3 id="docs-performance-title">Performance and memory</h3>
+                <p>VM size and opcode variety can increase load time and memory. A large obfuscated file is <strong>not</strong> evidence of stronger security. Avoid compiling the same source repeatedly on low-memory devices; export and keep the file you need.</p>
+                <ol>
+                  <li>Record source size, output size, Lua version and preset.</li>
+                  <li>Measure a cold start and several warm executions of the same output.</li>
+                  <li>Compare median wall time and peak resident memory against the original.</li>
+                  <li>Check program output for equivalence and repeat on your target device.</li>
+                </ol>
+                <p>V0.5 loader maintenance replaces per-bit LZSS reads with a bounded word reader and combines FNV/Adler checks into one byte pass. In one Lua 5.4 cold-start fixture, Strong Sealed Auto improved from a 0.573-second median to 0.431 seconds across four runs. This is a local sample, not a universal speedup or a low-RAM device guarantee.</p>
+                <p>For reproducible measurements use <code>python v2/tests/benchmark_matrix.py --lua lua5.4 --runs 5</code> in the source package. The CLI exposes <code>--vm-size compact</code> for size-constrained deployments, but it reduces decoy diversity; the web policy uses Strong/compact VM.</p>
+              </section>
+              <section class="doc-section" id="docs-security" aria-labelledby="docs-security-title">
+                <h3 id="docs-security-title">Security model &amp; limitations</h3>
+                <p>GsXFuscator is an obfuscator, not an encryption vault. A determined analyst can decode the outer transport and inspect the resulting VM; this is not necessarily the original source. Runtime debugging, hooking and memory snapshots are possible when an attacker controls the Lua interpreter.</p>
+                <p>Anti-tamper and anti-debug checks detect selected changes to references, behavior and VM structures, but they do not guarantee that all modifications or debuggers will be detected. FNV and Adler checksums detect corruption; they are <strong>not</strong> keyed authentication or signatures.</p>
+                <p>Do not embed reusable secrets or authorization decisions solely in the client-side output. See <code>v2/SECURITY.md</code> for boundaries and the validation checklist.</p>
+              </section>
+              <section class="doc-section" id="docs-troubleshooting" aria-labelledby="docs-troubleshooting-title">
+                <h3 id="docs-troubleshooting-title">Troubleshooting</h3>
+                <table class="doc-table" aria-label="Common problems and fixes">
+                  <thead><tr><th scope="col">Symptom</th><th scope="col">What to try</th></tr></thead>
+                  <tbody>
+                    <tr><td>Small or thin text</td><td>Use Settings → Large reading text, browser zoom, or OS text scaling. Light and Night both use Graphite contrast palettes.</td></tr>
+                    <tr><td>Lag or stutter</td><td>Enable system reduced motion/data, close other heavy tabs, and test the CLI on a less constrained machine.</td></tr>
+                    <tr><td>Font not loaded</td><td>System fonts render body text offline; Elegant display headings have a Georgia fallback.</td></tr>
+                    <tr><td>Lost settings</td><td>Private mode, full storage or blocked localStorage may prevent remembering them; defaults remain safe.</td></tr>
+                    <tr><td>Mismatch during verification</td><td>Inspect diagnostics, try a minimal reproduction, then test on the actual Lua runtime. Avoid disabling validation to silence an error.</td></tr>
+                  </tbody>
+                </table>
+              </section>
+
+            </div>
+          </div>
+        </div>
+
+
+        <section id="tab-settings" class="tab-pane" aria-labelledby="settings-heading">
+          <header class="settings-heading"><h2 id="settings-heading">Workspace settings</h2><p>Manage your profile, Graphite display mode, reading comfort and navigation.</p></header>
+          <section class="settings-section" aria-labelledby="profile-heading">
+            <h3 id="profile-heading">Profile</h3>
+            <div class="photo-controls">
+              <span class="profile-avatar profile-preview" data-avatar aria-hidden="true">CU</span>
+              <div><div class="photo-actions"><label class="settings-action photo-label" for="profile-file">Choose photo<input id="profile-file" type="file" accept="image/png,image/jpeg,image/webp"></label>
+              <button id="remove-photo" class="settings-action" type="button" hidden>Remove photo</button></div><p>JPG, PNG or WebP, up to 8 MB.</p></div>
+            </div>
+            <div class="settings-pair">
+              <label>Display name<input id="setting-name" type="text" maxlength="48" autocomplete="off" placeholder="GsX User"></label>
+              <label>Username<input id="setting-username" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="gsxuser"></label>
+            </div>
+          </section>
+          <section class="settings-section" aria-labelledby="appearance-heading">
+            <h3 id="appearance-heading">Appearance</h3>
+            <p class="appearance-note">Graphite is the fixed color palette. Choose a light or dark background; your preference is remembered on this device.</p>
+            <div class="appearance-row">
+              <span id="mode-label" class="appearance-label">Display mode</span>
+              <div id="mode-control" class="mode-control" role="group" aria-labelledby="mode-label">
+                <button type="button" data-mode-choice="light" aria-pressed="false"><span aria-hidden="true">☼</span> Light</button>
+                <button type="button" data-mode-choice="night" aria-pressed="true"><span aria-hidden="true">☾</span> Night</button>
+              </div>
+            </div>
+            <label class="reading-setting" for="large-text-toggle">
+              <span><strong>Large reading text</strong><small>Increase labels, instructions and documentation for easier reading.</small></span>
+              <input id="large-text-toggle" type="checkbox">
+            </label>
+          </section>
+          <section class="settings-section" aria-labelledby="navigation-heading">
+            <h3 id="navigation-heading">Navigation</h3>
+            <label>Which tab should open when you visit?<select id="setting-start"></select></label>
+            <h4>Tab order</h4><p id="order-help">Drag tabs into position, or use the up and down buttons.</p>
+            <ol class="tab-order" id="tab-order" aria-describedby="order-help"></ol>
+          </section>
+          <p id="settings-status" role="status" aria-live="polite"></p>
+        </section>
+        <!-- RULES TAB -->
+        <div id="tab-rules" class="tab-pane">
+          <div class="mb-6">
+            <h2 class="font-candy text-2xl md:text-3xl font-semibold text-fg">Rules & Guidelines</h2>
+            <p class="text-[14px] text-muted font-medium mt-1">These guidelines apply to building and sharing Lua files with GsXFuscator.</p>
+          </div>
+
+          <div class="space-y-3">
+            <div class="rule-item">
+              <div class="rule-num">1</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">Legal Use Only</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Use scripts you own or have permission to modify.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">2</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">No Malicious Scripts</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Malware, phishing and scripts intended to harm other people or systems are prohibited.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">3</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">Roblox ToS</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Follow the Roblox Terms of Use when distributing or running scripts on Roblox.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">4</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">No Guarantees</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Code distributed to a client can be inspected. Keep credentials and confidential business logic on your server.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">5</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">Build privacy</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">GsXFuscator does not save build history or upload generated files. Only appearance and profile preferences are saved locally when storage is available.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">6</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">Access restrictions</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Harmful use can result in loss of access.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">7</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">Keep Secrets Server-Side</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Never embed API keys, passwords or sensitive tokens in client-side Lua. Obfuscation cannot keep secrets from someone controlling the runtime.</p>
+              </div>
+            </div>
+
+            <div class="rule-item">
+              <div class="rule-num">8</div>
+              <div>
+                <h4 class="font-bold text-[15px] mb-1.5">Test Before Distribution</h4>
+                <p class="text-[13px] text-muted leading-relaxed border-b border-red/20 pb-1.5">Run the protected script in the intended Lua environment. Compare behavior, startup time and memory use with the original before releasing it.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-5 mt-6 border-red/30">
+            <p class="text-[13px] text-muted leading-relaxed">
+              GsXFuscator is provided as-is. You are responsible for the scripts you distribute.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script type="text/plain" id="engineSrc">/*__ENGINE__*/</script>
+  <script>
+    'use strict';
+    const WORKER_B64 = /*__WORKER__*/;
+    const WASM_B64 = /*__WASM__*/;
+    const DRIVER_B64 = /*__DRIVER__*/;
+    const MODULES = /*__MODULES__*/;
+
+    function compileFile(build) {
+      return new Promise((resolve, reject) => {
+        let worker = null, inlineURL = null;
+        let finished = false, workerMode = '', seenWorkerMessage = false;
+        let workerStartedAt = 0;
+        function clearWorker() {
+          if (worker) worker.terminate();
+          worker = null;
+          if (inlineURL) URL.revokeObjectURL(inlineURL);
+          inlineURL = null;
+        }
+        function finish(error, result) {
+          if (finished) return;
+          finished = true;
+          build.cancel = null;
+          clearWorker();
+          if (error) reject(error);
+          else resolve(result);
+        }
+        function launch(mode) {
+          clearWorker();
+          seenWorkerMessage = false;
+          workerMode = mode;
+          workerStartedAt = Date.now();
+          if (mode === 'hosted') {
+            // Same-origin classic worker is compatible with hosts that reject
+            // blob workers; the query fingerprint avoids stale cached builds.
+            const hostedURL = new URL('./compiler-worker.js?v=__WORKER_FINGERPRINT__', location.href);
+            worker = new Worker(hostedURL);
+          } else {
+            // Self-contained offline HTML still works without any server.
+            const engine = document.getElementById('engineSrc').textContent;
+            const workerScript = atob(WORKER_B64);
+            const workerSource = [
+              'try {\nvar window = self;\n', engine, '\n', workerScript,
+              '\n} catch (error) { self.postMessage({error: "Compiler bootstrap failed: " + String(error && error.message || error)}); }'
+            ];
+            inlineURL = URL.createObjectURL(new Blob(workerSource, {type:'application/javascript'}));
+            worker = new Worker(inlineURL);
+          }
+          const thisWorker = worker;
+          worker.onerror = event => {
+            event.preventDefault();
+            if (finished || worker !== thisWorker) return;
+            // A missing hosted file or hosting CSP restriction should not
+            // render the offline compiler unusable. Retry once using blob.
+            if (workerMode === 'hosted' && !seenWorkerMessage &&
+                Date.now() - workerStartedAt < 10000) {
+              try { launch('inline'); return; }
+              catch (error) { finish(error); return; }
+            }
+            const detail = (typeof event.message === 'string' &&
+              event.message && event.message !== 'Script error.')
+                ? event.message
+                : 'The browser blocked the Worker or it ran out of resources.';
+            finish(new Error('Compiler Worker failed: ' + detail +
+              ' Try reloading, another browser or the local CLI.'));
+          };
+          worker.onmessageerror = () => {
+            if (finished || worker !== thisWorker) return;
+            finish(new Error('The browser could not transfer the compiler response. Try the local CLI.'));
+          };
+          worker.onmessage = ({data}) => {
+            if (finished || worker !== thisWorker) return;
+            seenWorkerMessage = true;
+            if (data && data.phase) {
+              const phases = {
+                initialization: ['Loading the Lua runtime…', 1],
+                modules: ['Preparing the VM compiler…', 3],
+                compilation: ['Compiling in the browser…', 5]
+              };
+              const phase = phases[data.phase];
+              if (phase) {
+                note(phase[0], '');
+                ringProgress(phase[1], true);
+              }
+              return;
+            }
+            if (data && data.progress) {
+              const {index,total} = data.progress;
+              ringProgress(6 + 86 * index / total, true);
+              note('Compiling part ' + index + ' of ' + total + '…', '');
+              return;
+            }
+            if (!data || typeof data !== 'object') {
+              finish(new Error('The compiler returned an invalid message.'));
+              return;
+            }
+            finish(data.error ? new Error(data.error) : null, data);
+          };
+          worker.postMessage({
+            source:build.source, rules:build.rules, delivery:build.delivery,
+            vmSize:build.vmSize, modules:MODULES, driver:DRIVER_B64, wasm:WASM_B64
+          });
+        }
+        try {
+          if (typeof Worker !== 'function') {
+            throw new Error('This browser does not support Web Workers. Use a recent browser or the local CLI.');
+          }
+          if (typeof WebAssembly === 'undefined') {
+            throw new Error('WebAssembly is disabled. Enable it or use the local CLI.');
+          }
+          build.cancel = () => finish(new Error('The selected file changed.'));
+          // No compile-time deadline: large files remain active until the Worker
+          // returns, encounters a real error, or the user selects another file.
+          const hosted = location.protocol === 'https:' || location.protocol === 'http:';
+          try { launch(hosted ? 'hosted' : 'inline'); }
+          catch (err) {
+            if (!hosted) throw err;
+            launch('inline');
+          }
+        } catch (error) { finish(error); }
+      });
+    }
+
+    // ------------------------------------------------------------------ build
+    var PREVIEW_BYTES = 262144;
+    var activeBuild = null;
+    var ringPct = 0, ringTimer = null, ringStart = 0, ringEst = 4000;
+    var lastBuildMs = 0, lastBuildLen = 0;
+
+    function note(text, kind) {
+      buildStage.innerText = text || 'Idle';
+      buildStage.classList.remove('text-green-500', 'text-red-500', 'text-muted', 'text-fg');
+      if (kind === 'ok') buildStage.classList.add('text-green-500');
+      else if (kind === 'err') buildStage.classList.add('text-red-500');
+      else if (kind === 'warn') buildStage.classList.add('text-fg');
+      else buildStage.classList.add('text-muted');
+    }
+
+    function ringProgress(pct, fromEngine) {
+      if (fromEngine) pct = Math.max(pct, ringPct);
+      ringPct = Math.min(99, Math.round(pct));
+      buildRing.style.strokeDashoffset = CIRCUMFERENCE - (ringPct / 100) * CIRCUMFERENCE;
+      buildPercent.innerText = ringPct + '%';
+    }
+
+    function ringStartRun(len) {
+      ringPct = 0;
+      ringStart = Date.now();
+      ringEst = lastBuildMs > 0
+        ? Math.max(2200, Math.min(240000, lastBuildMs * (0.8 + 0.2 * (len / Math.max(1, lastBuildLen))) + 250))
+        : Math.max(2500, Math.min(240000, 4500 + len * 1.2));
+      if (ringTimer) cancelAnimationFrame(ringTimer);
+      const lowMotion = document.documentElement.dataset.performance === 'lite';
+      if (lowMotion) { ringProgress(4, false); return; }
+      var tick = function (ts) {
+        if (!ringStart) return;
+        var el = Date.now() - ringStart;
+        var frac = Math.min(1, el / (ringEst * 0.85));
+        ringProgress(Math.max(ringPct, 4 + frac * 86), false);
+        var pulse = 1 + Math.sin(ts / 55) * 0.04;
+        pulseContainer.style.transform = 'scale(' + pulse + ')';
+        ringTimer = requestAnimationFrame(tick);
+      };
+      ringTimer = requestAnimationFrame(tick);
+    }
+
+    function ringFinish() {
+      var began = ringStart;
+      ringStart = 0;
+      if (ringTimer) { cancelAnimationFrame(ringTimer); ringTimer = null; }
+      pulseContainer.style.transform = 'scale(1)';
+      if (began) lastBuildMs = Math.max(500, Date.now() - began);
+    }
+
+    function publishArtifact(build, code, message, kind) {
+      currentGeneratedCode = code;
+      outputCode.textContent = code.length > PREVIEW_BYTES
+        ? code.slice(0, PREVIEW_BYTES) + '\n... [' + fmtBytes(code.length - PREVIEW_BYTES) + ' preview cut — Copy/Download carry the full file]'
+        : code;
+      outputSection.classList.remove('hidden');
+      setTimeout(function () {
+        if (activeBuild === build) outputSection.style.opacity = '1';
+      }, 40);
+      note(message, kind);
+    }
+
+
+    // Capture the options at the start of each build.
+    // Locked V0.6 protection policy. Never restore weaker settings from an old build.
+    const AUTO_PROTECTION_V05 = Object.freeze({
+      preset: 'strong', delivery: 'sealed', vmSize: 'compact',
+      flatten: true, opaque: true, selfmod: true, antidebug: true,
+      integrity: true
+    });
+    function currentRules() {
+      return {
+        flatten: AUTO_PROTECTION_V05.flatten,
+        opaque: AUTO_PROTECTION_V05.opaque,
+        selfmod: AUTO_PROTECTION_V05.selfmod,
+        antidebug: AUTO_PROTECTION_V05.antidebug,
+        integrity: AUTO_PROTECTION_V05.integrity
+      };
+    }
+    // Saves the resolved policy locally. The profile is intentionally locked;
+    // older disabled checkboxes must never turn protection off after an update.
+    try {
+      localStorage.setItem('clax.obfuscator.profile.v05', JSON.stringify(AUTO_PROTECTION_V05));
+    } catch (_) { /* Private mode/storage unavailable; locked defaults still apply. */ }
+
+    function failBuild(data) {
+      var msg = data.stage || 'build failed';
+      if (data.errors && data.errors.length) {
+        msg += ': ' + data.errors.slice(0, 3).map(function (e) {
+          return (e.line ? 'line ' + e.line + ': ' : '') + (e.msg || 'error');
+        }).join(' | ');
+      }
+      note(msg, 'err');
+      showToast('Build failed — ' + (data.stage || 'unknown'), false);
+    }
+
+    // A dialect-based preference, not a security or host-runtime guarantee.
+    // .luau and recognizable Roblox-only APIs need no dynamic loader.
+    function guessLuaDelivery(name, source) {
+      if (/\.luau$/i.test(String(name||''))) return 'direct-vm';
+      if (/(?:\bgame\s*:\s*GetService\b|\bInstance\s*\.\s*new\s*\(|\bworkspace\s*\.|\bscript\s*\.\s*Parent\b)/.test(String(source||''))) return 'direct-vm';
+      return 'sealed';
+    }
+
+    async function startObfuscation() {
+      if (!currentFile || !currentFileText || running) return;
+      const build = {source:currentFileText, name:currentFile.name,
+        rules:currentRules(),
+        delivery:guessLuaDelivery(currentFile.name,currentFileText),
+        vmSize:AUTO_PROTECTION_V05.vmSize};
+      activeBuild = build;
+      running = true;
+      runBtn.disabled = true;
+      currentGeneratedCode = '';
+      outputCode.textContent = '';
+      outputSection.classList.add('hidden');
+      outputSection.style.opacity = '0';
+      note('Compiling in your browser…', '');
+      ringStartRun(build.source.length);
+
+      try {
+        const frame = await compileFile(build);
+        if (activeBuild !== build) return;
+        if (frame.status === 'CRASH' || !frame.data) {
+          throw new Error(frame.data?.msg || 'The compiler could not finish this build.');
+        }
+        if (frame.status !== 'OK' || !frame.data.ok) {
+          failBuild(frame.data);
+          return;
+        }
+        if (!frame.code) throw new Error('The compiler returned an empty file.');
+        ringPct = 100;
+        buildRing.style.strokeDashoffset = 0;
+        buildPercent.innerText = '100%';
+        publishArtifact(build, frame.code, 'Build complete. Ready to download.', 'ok');
+        showToast('Build complete!');
+      } catch (error) {
+        if (activeBuild !== build) return;
+        note(error.message || 'The build failed.', 'err');
+        showToast('Build failed', false);
+      } finally {
+        if (activeBuild === build) {
+          ringFinish();
+          if (ringPct < 100) ringProgress(0, false);
+          running = false;
+          runBtn.disabled = !currentFileText;
+        }
+      }
+    }
+
+    // --- TYPEWRITER ---
+    let typeTimeout;
+    
+    function typeWriter(text, elementId, speed = 15) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.innerHTML = '';
+      let i = 0;
+      
+      const cursor = document.createElement('span');
+      cursor.className = 'type-cursor';
+      el.appendChild(cursor);
+
+      function type() {
+        if (i < text.length) {
+          let char = text.charAt(i);
+          if (char === '<') {
+            const endTag = text.indexOf('>', i);
+            if (endTag !== -1) {
+              cursor.insertAdjacentHTML('beforebegin', text.substring(i, endTag + 1));
+              i = endTag + 1;
+            } else {
+              cursor.insertAdjacentText('beforebegin', char);
+              i++;
+            }
+          } else {
+            cursor.insertAdjacentText('beforebegin', char);
+            i++;
+          }
+          typeTimeout = setTimeout(type, speed);
+        } else {
+          setTimeout(() => cursor.remove(), 900);
+        }
+      }
+      type();
+    }
+
+    // --- SIDEBAR (Mobile) ---
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebar-overlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // --- MODAL ---
+    let modalCallback = null;
+    const overlay = document.getElementById('modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const modalInput = document.getElementById('modal-input');
+    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+
+    function showModal(title, message, isPrompt, defaultValue, callback) {
+      modalTitle.innerText = title;
+      modalMessage.innerText = message;
+      modalCallback = callback;
+      
+      if (isPrompt) {
+        modalInput.classList.remove('hidden');
+        modalInput.value = defaultValue || "";
+        setTimeout(() => modalInput.focus(), 80);
+      } else {
+        modalInput.classList.add('hidden');
+      }
+      
+      overlay.classList.add('active');
+    }
+
+    function closeModal() {
+      overlay.classList.remove('active');
+      setTimeout(() => modalCallback = null, 250);
+    }
+
+    modalConfirmBtn.onclick = () => {
+      if (modalCallback) {
+        if (!modalInput.classList.contains('hidden')) {
+          modalCallback(modalInput.value);
+        } else {
+          modalCallback();
+        }
+      }
+      closeModal();
+    };
+
+    // --- TOAST ---
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById("toast");
+      const icon = document.getElementById("toast-icon");
+      document.getElementById("toast-message").innerText = message;
+      
+      if (isSuccess) {
+        icon.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+        toast.style.borderColor = '#22c55e';
+      } else {
+        icon.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+        toast.style.borderColor = '#ff0033';
+      }
+      
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      const currentActive = document.querySelector('.tab-pane.active');
+      const newTarget = document.getElementById('tab-' + tabId);
+      const item = document.querySelector('.nav-item[data-target="' + tabId + '"]');
+      if (!newTarget || !item) return;
+      if (window.ClaxRememberTab) window.ClaxRememberTab(tabId);
+      if (currentActive === newTarget) return;
+
+      clearTimeout(typeTimeout);
+      if (currentActive) currentActive.classList.remove('active', 'visible');
+      newTarget.classList.add('active', 'visible');
+      document.querySelectorAll('.nav-item.active').forEach(el => {
+        el.classList.remove('active');
+        el.removeAttribute('aria-current');
+      });
+      item.classList.add('active');
+      item.setAttribute('aria-current', 'page');
+      document.getElementById('page-title').textContent = item.textContent.trim();
+      newTarget.closest('.overflow-y-auto').scrollTop = 0;
+
+      if (tabId === 'overview') {
+        typeWriter("Welcome back,", "type-target-1", 22);
+      } else if (tabId === 'obfuscate') {
+        typeWriter("GsXFuscator V0.6", "type-target-2", 14);
+      } else if (tabId === 'docs') {
+        const section = docsFragment();
+        if (section) section.scrollIntoView({block: 'start'});
+      }
+    }
+
+    function docsFragment() {
+      const target = document.getElementById(location.hash.slice(1));
+      return target && target.matches('#tab-docs .doc-section') ? target : null;
+    }
+
+    function openDocsFragment() {
+      if (docsFragment() && !document.getElementById('tab-docs').classList.contains('active')) {
+        switchTab('docs');
+      }
+    }
+
+    window.addEventListener('hashchange', openDocsFragment);
+    document.addEventListener('DOMContentLoaded', () => {
+      if (docsFragment()) {
+        openDocsFragment();
+        return;
+      }
+      if (document.getElementById('tab-overview').classList.contains('active')) typeWriter("Welcome back,", "type-target-1", 22);
+    });
+
+    // --- FILE HANDLING ---
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const fileNameEl = document.getElementById('fileName');
+    const fileSizeEl = document.getElementById('fileSize');
+    const runBtn = document.getElementById('runBtn');
+    const buildRing = document.getElementById('build-ring');
+    const buildPercent = document.getElementById('build-percent');
+    const buildStage = document.getElementById('build-stage');
+    const outputSection = document.getElementById('outputSection');
+    const outputCode = document.getElementById('outputCode');
+    const pulseContainer = document.getElementById('pulse-container');
+    const CIRCUMFERENCE = 276.46;
+    let currentFile = null;
+    let currentFileText = null;
+    let currentGeneratedCode = "";
+    let running = false;
+
+    function fmtBytes(n) {
+      if (!n) return '0 B';
+      if (n < 1024) return n + ' B';
+      if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+      return (n / 1048576).toFixed(2) + ' MB';
+    }
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+    dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      dropZone.classList.remove('dragover');
+      handleFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', function() { handleFile(this.files[0]); });
+
+    async function handleFile(file) {
+      if (!file) return;
+      if (running) {
+        activeBuild.cancel?.();
+        activeBuild = null;
+        running = false;
+        ringFinish();
+        ringProgress(0, false);
+        note('Select Run to compile the new file.', '');
+      }
+      currentFile = file;
+      currentFileText = null;
+      runBtn.disabled = true;
+
+      if (!/\.(lua|luau|txt)$/i.test(file.name)) {
+        fileSizeEl.innerText = 'Unsupported extension · choose .lua, .luau or .txt';
+        showToast('Choose .lua, .luau, or .txt containing Lua source code.', false);
+        return;
+      }
+      let size = file.size;
+      let sizeStr = size < 1024 ? size + ' B' : (size < 1048576 ? (size/1024).toFixed(1) + ' KB' : (size/1048576).toFixed(2) + ' MB');
+
+      fileNameEl.innerText = file.name;
+      fileSizeEl.innerText = sizeStr + ' · reading...';
+      if (size > 10 * 1024 * 1024) {
+        fileSizeEl.innerText = sizeStr + ' · exceeds 10 MiB';
+        showToast('Choose a file up to 10 MiB.', false);
+        return;
+      }
+      try {
+        const bytes = await file.arrayBuffer();
+        if (file !== currentFile) return;
+        currentFileText = new TextDecoder('utf-8', {fatal:true}).decode(bytes);
+        if (!currentFileText.trim()) {
+          currentFileText = null;
+          fileSizeEl.innerText = sizeStr + ' · empty';
+          return;
+        }
+        fileSizeEl.innerText = sizeStr + ' · ' + currentFileText.length.toLocaleString() + ' chars';
+        fileNameEl.classList.add('text-red');
+        dropZone.style.borderStyle = 'solid';
+        dropZone.style.borderColor = 'rgba(255,0,51,0.35)';
+        runBtn.disabled = running || !currentFileText;
+      } catch {
+        if (file !== currentFile) return;
+        fileSizeEl.innerText = sizeStr + ' · invalid UTF-8 or unreadable';
+        showToast('Choose a readable UTF-8 file.', false);
+      }
+    }
+
+    // --- COPY & DOWNLOAD ---
+
+
+    function copyToClipboard(elementId, btnElement, fullText) {
+      // The pane is a truncated preview; the clipboard gets the full artifact.
+      const text = fullText ?? (elementId === 'outputCode' && currentGeneratedCode
+        ? currentGeneratedCode : document.getElementById(elementId).textContent);
+      const finishCopy = () => {
+        showToast("Copied to clipboard!");
+        if(btnElement) {
+           const orig = btnElement.innerText;
+           btnElement.innerText = "Copied!";
+           btnElement.classList.add('text-green-500', 'border-green-500');
+           setTimeout(() => {
+             btnElement.innerText = orig;
+             btnElement.classList.remove('text-green-500', 'border-green-500');
+           }, 1800);
+        }
+      };
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(finishCopy).catch(() => fallbackCopy(text, finishCopy));
+      } else {
+        fallbackCopy(text, finishCopy);
+      }
+    }
+
+    function fallbackCopy(text, callback) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed"; textArea.style.top = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus(); textArea.select();
+      try {
+        if (document.execCommand('copy')) callback();
+        else showToast("Failed to copy.", false);
+      } 
+      catch (err) { showToast("Failed to copy.", false); }
+      document.body.removeChild(textArea);
+    }
+
+    function downloadFile(content, filename) {
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 800);
+      
+      showToast("Download started!");
+    }
+
+    function downloadCurrentOutput() {
+      if (!currentGeneratedCode) return;
+      const randomNum = Math.floor(10000000 + Math.random() * 90000000);
+      downloadFile(currentGeneratedCode, `gsxfuscator_${randomNum}.lua`);
+    }
+
+  </script>
+  <script>/*__SETTINGS_JS__*/</script>
+
+  <script>
+    // Client-side offline documentation search. Does not send queries anywhere.
+    (function(){
+      const field = document.getElementById('dev-doc-search');
+      const status = document.getElementById('dev-doc-status');
+      const chapters = document.querySelectorAll('#dev-doc-chapters > details');
+      if (!field || !status || !chapters.length) return;
+      field.addEventListener('input', function(){
+        const query = field.value.trim().toLocaleLowerCase();
+        let visible = 0;
+        chapters.forEach(function(chapter){
+          const matching = !query || chapter.textContent.toLocaleLowerCase().includes(query);
+          chapter.hidden = !matching;
+          if (matching) visible += 1;
+          if (query && matching) chapter.open = true;
+          if (!query && chapter === chapters[0]) chapter.open = true;
+          else if (!query) chapter.open = false;
+        });
+        status.textContent = visible + ' of ' + chapters.length + ' documentation chapters';
+      });
+      document.querySelectorAll('#tab-docs a[href^="#dev-"]').forEach(function(link){
+        link.addEventListener('click',function(){
+          const target = document.getElementById(link.getAttribute('href').slice(1));
+          if (target && target.tagName.toLowerCase() === 'details') target.open = true;
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
